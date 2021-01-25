@@ -16,7 +16,7 @@ let searchKey = function () {
 
     keyString = documentTextElement.slice(init.searchKeyStartPosition + 1, caretPosition);
 
-    console.log(keyString);
+    console.log('~~~', keyString);
 }
 
 let isSlashAllowed = function () {
@@ -27,9 +27,13 @@ let isSlashAllowed = function () {
 }
 
 let handleKeyPress = function (pressedKey) {
+    console.log(pressedKey);
     if ('/' === pressedKey) {
         let result = isSlashAllowed();
         -1 !== result ? (init.searchKeyStartPosition = result, init.slashTriggered = true) : undefined;
+    }
+    else if ('Enter' === pressedKey) {
+        init.slashTriggered ? (init.searchKeyStartPosition = -1, init.slashTriggered = false) : undefined;
     } else {
         init.slashTriggered ? searchKey() : undefined;
     }
