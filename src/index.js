@@ -4,14 +4,72 @@ let TrixJS = function (trixConfig) {
     this.holder = trixConfig.holder;
     this.inputId = trixConfig.inputId;
 
-    let targetEditor = document.querySelector('#' + this.holder);
-    let initEditor = document.createElement('trix-editor');
-    initEditor.setAttribute('input', this.inputId);
+    const targetEditor = document.querySelector('#' + this.holder);
+    const initEditor = document.createElement('trix-editor');
+    const inputField = document.createElement('input');
 
+    inputField.setAttribute('id', this.holder + "-input");
+    inputField.setAttribute('type', 'hidden');
+    inputField.setAttribute('value', '');
+    inputField.setAttribute('name', "content");
+
+    initEditor.setAttribute('input', this.holder + "-input");
+
+    targetEditor.appendChild(inputField);
     targetEditor.appendChild(initEditor);
 
+    const element = document.querySelectorAll("#" + this.holder + " trix-editor")[0];
 
-    let element = document.querySelectorAll("#trix trix-editor")[0];
+
+    let makeHtmlElement = function (elementConfig) {
+        let htmlElement = document.createElement(elementConfig.name);
+        for (key in elementConfig.properties) {
+            htmlElement.setAttribute(key, elementConfig.properties[key]);
+        }
+
+        return htmlElement;
+    }
+
+    let loadListItems = function () {
+        let div = makeHtmlElement({
+            name: "div",
+            properties: {
+                style: `border: 1px solid #ededed; border-radius: .4rem; overflow-y: scroll; max-height: 90px; max-width: 200px;`,
+
+            }
+        });
+
+        let ul = makeHtmlElement({
+            name: "ul",
+            properties: {
+                style: `list-style-type: none; padding-left: 0`,
+            }
+        });
+
+        let listItems = {
+            heading1: "Heading",
+            quote: "Quote",
+            code: "Code",
+            bullet: "Bullet List",
+            number: "Numbered List",
+        } 
+
+        for(item in listItems){
+            let li = makeHtmlElement({
+                name: "li",
+                properties: {
+                    name: listItems[item],
+                    id: item,
+                }
+            });
+            li.innerText = listItems[item];
+            ul.appendChild(li);
+        }
+        console.log(ul);
+        div.appendChild(ul);
+
+        targetEditor.appendChild(div);
+    }
 
     let searchKey = function () {
         let documentTextElement = element.innerText;
@@ -30,7 +88,7 @@ let TrixJS = function (trixConfig) {
     }
 
     let slashReset = function () {
-        if (slashTriggered) {
+        if (this.slashTriggered) {
             element.editor.setSelectedRange([
                 searchKeyStartPosition,
                 element.editor.getSelectedRange()[0]
@@ -39,7 +97,7 @@ let TrixJS = function (trixConfig) {
             element.editor.deleteInDirection("forward");
 
             searchKeyStartPosition = -1;
-            slashTriggered = false;
+            this.slashTriggered = false;
         }
     }
 
@@ -47,7 +105,7 @@ let TrixJS = function (trixConfig) {
         console.log(pressedKey);
         if ('/' === pressedKey) {
             let result = isSlashAllowed();
-            -1 !== result ? (searchKeyStartPosition = result, slashTriggered = true) : undefined;
+            -1 !== result ? (searchKeyStartPosition = result, this.slashTriggered = true) : undefined;
         }
         else if ('Enter' === pressedKey) {
             slashReset();
@@ -56,16 +114,20 @@ let TrixJS = function (trixConfig) {
             slashReset();
         }
         else {
-            slashTriggered ? searchKey() : undefined;
+            this.slashTriggered ? searchKey() : undefined;
         }
     }
+
+    addEventListener("trix-initialize", function (event) {
+        console.log("editor is ready to use");
+        loadListItems();
+    })
 
     element.addEventListener("keyup", function (event) {
         handleKeyPress(event.key);
     })
 };
 
-let test = new TrixJS({
+const test = new TrixJS({
     holder: "trix",
-    inputId: "trix-input"
 });
