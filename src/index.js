@@ -1,9 +1,13 @@
 let TrixJS = function (trixConfig) {
-    this.slashTriggered = false;
-    this.searchKeyStartPosition = -1;
     this.holder = trixConfig.holder;
     this.inputId = trixConfig.inputId;
-    this.itemListPopupTrigger = false;
+    this.value = trixConfig.value;
+
+    let resetCaretPosition = -1;
+    let slashTriggered = false;
+    let searchKeyStartPosition = -1;
+    let listIndex = -1;
+    let listItemSelected = undefined;
 
     const targetEditor = document.querySelector('#' + this.holder);
     const initEditor = document.createElement('trix-editor');
@@ -11,9 +15,8 @@ let TrixJS = function (trixConfig) {
 
     inputField.setAttribute('id', this.holder + "-input");
     inputField.setAttribute('type', 'hidden');
-    inputField.setAttribute('value', '');
+    inputField.setAttribute('value', this.value);
     inputField.setAttribute('name', "content");
-
     initEditor.setAttribute('input', this.holder + "-input");
 
     targetEditor.appendChild(inputField);
@@ -35,7 +38,7 @@ let TrixJS = function (trixConfig) {
         let div = makeHtmlElement({
             name: "div",
             properties: {
-                style: `border: 1px solid #ededed; border-radius: .4rem; overflow-y: scroll; max-height: 90px; max-width: 200px;`,
+                style: `border: 1px solid #ededed; border-radius: .4rem; max-height: 190px; max-width: 200px;`,
 
             }
         });
@@ -72,6 +75,13 @@ let TrixJS = function (trixConfig) {
         targetEditor.appendChild(div);
     }
 
+    function itemListReset() {
+        let itemList = targetEditor.querySelector("ul");
+        let li = itemList.getElementsByTagName("li");
+        let i = 0, listLength = li.length;
+        for (i = 0; i < listLength; i++) li[i].style.display = "";
+    }
+
     function searchItemList(keyString) {
         let itemList = targetEditor.querySelector("ul");
         let li = itemList.getElementsByTagName("li");
@@ -82,6 +92,39 @@ let TrixJS = function (trixConfig) {
                 li[i].style.display = "";
             } else {
                 li[i].style.display = "none";
+            }
+        }
+    }
+
+    function travelItemList(pressedKey) {
+        console.log("traveling");
+        let itemList = targetEditor.querySelector("ul").getElementsByTagName('li'), i = 0, j = 0;
+        let itemLength = itemList.length;
+
+        if ("ArrowUp" === pressedKey) {
+            for (i = itemLength - 1; i >= 0; i--) {
+                if (null === itemList[i].getAttribute("style")) {
+                    itemList[i].classList.add("selected");
+                }
+            }
+            console.log("up");
+        }
+        else {
+            if (undefined === listItemSelected) {
+                listIndex = 0;
+
+                listItemSelected = itemList[0];
+                listItemSelected.classList.add("selected");
+            }
+            else {
+                listItemSelected.classList.remove("selected");
+                while (null !== listItemSelected.nextSibling) {
+                    listItemSelected = listItemSelected.nextSibling;
+                    if (null === listItemSelected.getAttribute("style")) {
+                        listItemSelected.classList.add("selected");
+                        break;
+                    }   
+                }
             }
         }
     }
@@ -118,6 +161,7 @@ let TrixJS = function (trixConfig) {
 
     let handleKeyPress = function (pressedKey) {
         console.log(pressedKey);
+
         if ('/' === pressedKey) {
             let result = isSlashAllowed();
             -1 !== result ? (
@@ -127,10 +171,22 @@ let TrixJS = function (trixConfig) {
             ) : undefined;
         }
         else if ('Enter' === pressedKey) {
-            slashTriggered ? slashReset() : undefined;
+            slashTriggered ? (
+                slashReset(),
+                itemListReset()
+            ) : undefined;
         }
-        else if (' ' === pressedKey) {
-            slashTriggered ? slashReset() : undefined;
+        else if ('' === pressedKey) {
+            console.log('' === pressedKey);
+            slashTriggered ? (
+                itemListReset()
+            ) : undefined;
+        }
+        else if ("ArrowUp" === pressedKey || "ArrowDown" === pressedKey) {
+            slashTriggered ? (
+                element.editor.setSelectedRange([resetCaretPosition, resetCaretPosition]),
+                travelItemList(pressedKey)
+            ) : undefined;
         }
         else {
             slashTriggered ? searchKey() : undefined;
@@ -140,13 +196,23 @@ let TrixJS = function (trixConfig) {
     addEventListener("trix-initialize", function (event) {
         console.log("editor is ready to use");
         loadListItems();
-    })
+    });
 
     element.addEventListener("keyup", function (event) {
-        handleKeyPress(event.key);
-    })
+        handleKeyPress(event.key.trim());
+    });
+
+    element.addEventListener("keydown", function (event) {
+        resetCaretPosition = element.editor.getSelectedRange()[0];
+        console.log("down", resetCaretPosition);
+    });
+
+    return {
+        element,
+    }
 };
 
 const test = new TrixJS({
     holder: "trix",
+    value: "<h1>hello</h1>",
 });
