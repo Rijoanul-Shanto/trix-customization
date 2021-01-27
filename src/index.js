@@ -3,6 +3,7 @@ let TrixJS = function (trixConfig) {
     this.searchKeyStartPosition = -1;
     this.holder = trixConfig.holder;
     this.inputId = trixConfig.inputId;
+    this.itemListPopupTrigger = false;
 
     const targetEditor = document.querySelector('#' + this.holder);
     const initEditor = document.createElement('trix-editor');
@@ -46,15 +47,15 @@ let TrixJS = function (trixConfig) {
             }
         });
 
-        let listItems = {
+        const listItems = {
             heading1: "Heading",
             quote: "Quote",
             code: "Code",
             bullet: "Bullet List",
             number: "Numbered List",
-        } 
+        }
 
-        for(item in listItems){
+        for (item in listItems) {
             let li = makeHtmlElement({
                 name: "li",
                 properties: {
@@ -71,12 +72,26 @@ let TrixJS = function (trixConfig) {
         targetEditor.appendChild(div);
     }
 
+    function searchItemList(keyString) {
+        let itemList = targetEditor.querySelector("ul");
+        let li = itemList.getElementsByTagName("li");
+        let i = 0, listLength = li.length, listValue = "", filter = keyString.toUpperCase();
+        for (i = 0; i < listLength; i++) {
+            listValue = li[i].textContent;
+            if (listValue.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+            } else {
+                li[i].style.display = "none";
+            }
+        }
+    }
+
     let searchKey = function () {
         let documentTextElement = element.innerText;
         let caretPosition = element.editor.getSelectedRange()[0];
 
         keyString = documentTextElement.slice(searchKeyStartPosition + 1, caretPosition);
-
+        searchItemList(keyString.trim());
         console.log('~~~', keyString);
     }
 
@@ -88,7 +103,7 @@ let TrixJS = function (trixConfig) {
     }
 
     let slashReset = function () {
-        if (this.slashTriggered) {
+        if (slashTriggered) {
             element.editor.setSelectedRange([
                 searchKeyStartPosition,
                 element.editor.getSelectedRange()[0]
@@ -97,7 +112,7 @@ let TrixJS = function (trixConfig) {
             element.editor.deleteInDirection("forward");
 
             searchKeyStartPosition = -1;
-            this.slashTriggered = false;
+            slashTriggered = false;
         }
     }
 
@@ -105,16 +120,20 @@ let TrixJS = function (trixConfig) {
         console.log(pressedKey);
         if ('/' === pressedKey) {
             let result = isSlashAllowed();
-            -1 !== result ? (searchKeyStartPosition = result, this.slashTriggered = true) : undefined;
+            -1 !== result ? (
+                searchKeyStartPosition = result,
+                slashTriggered = true,
+                itemListPopupTrigger = true
+            ) : undefined;
         }
         else if ('Enter' === pressedKey) {
-            slashReset();
+            slashTriggered ? slashReset() : undefined;
         }
         else if (' ' === pressedKey) {
-            slashReset();
+            slashTriggered ? slashReset() : undefined;
         }
         else {
-            this.slashTriggered ? searchKey() : undefined;
+            slashTriggered ? searchKey() : undefined;
         }
     }
 
