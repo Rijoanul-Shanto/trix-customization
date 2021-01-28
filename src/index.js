@@ -7,7 +7,6 @@ let TrixJS = function (trixConfig) {
     let slashTriggered = false;
     let searchKeyStartPosition = -1;
     let listIndex = 0;
-    // let isTravelingList = false;
     let listItemSelected = undefined;
 
     const targetEditor = document.querySelector('#' + this.holder);
@@ -96,11 +95,12 @@ let TrixJS = function (trixConfig) {
                 itemList.appendChild(itemArray[i]);
             }
         }
+        else listItemSelected = undefined;
     }
 
     function travelItemList(pressedKey) {
         console.log("traveling");
-        let itemList = targetEditor.querySelector("ul").getElementsByTagName('li'), i = 0, j = 0;
+        let itemList = targetEditor.querySelector("ul").getElementsByTagName('li');
         let itemLength = itemList.length;
         let nextChild;
 
@@ -142,11 +142,15 @@ let TrixJS = function (trixConfig) {
 
     let searchKey = function () {
         let documentTextElement = element.innerText;
+        if ("/" !== documentTextElement[searchKeyStartPosition]) {
+            searchKeyStartPosition = -1;
+            slashTriggered = false;
+        }
         let caretPosition = element.editor.getSelectedRange()[0];
 
         keyString = documentTextElement.slice(searchKeyStartPosition + 1, caretPosition);
         searchItemList(keyString.trim());
-        console.log('~~~', keyString);
+        console.log('~~~', keyString, documentTextElement[searchKeyStartPosition]);
     }
 
     let isSlashAllowed = function () {
@@ -188,7 +192,8 @@ let TrixJS = function (trixConfig) {
         }
         else if ('' === pressedKey) {
             slashTriggered ? (
-                itemListReset()
+                itemListReset(),
+                listIndex = 0
             ) : undefined;
         }
         else {
@@ -202,7 +207,8 @@ let TrixJS = function (trixConfig) {
                 event.preventDefault(),
                 event.stopPropagation(),
                 slashReset(),
-                itemListReset()
+                itemListReset(),
+                listIndex = 0
             ) : undefined;
 
             console.log(listItemSelected);
