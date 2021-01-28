@@ -49,8 +49,9 @@ let TrixJS = function (trixConfig) {
         let div = makeHtmlElement({
             name: "div",
             properties: {
-                style: `border: 1px solid #ededed; border-radius: .4rem; max-height: 190px; max-width: 200px; display:none`,
-                id: `${holder}-list-item-root`
+                style: `display: none; border: 1px solid #ededed; border-radius: .4rem;`,
+                id: `${holder}-list-item-root`,
+                class: "custom-modal",
             }
         });
 
@@ -80,11 +81,51 @@ let TrixJS = function (trixConfig) {
         itemList.innerHTML = "";
     }
 
+    function createListItem(item, value){
+        let liCreate;
+
+        let bodyDiv = makeHtmlElement({
+            name: "div",
+            properties: {
+                class: "body-div"
+            }
+        });
+
+        let iconDiv = makeHtmlElement({
+            name: "div",
+            properties: {
+                class: `${item}-svg icon-preview`
+            }
+        });
+
+        let itemInfoDiv = makeHtmlElement({
+            name: "div",
+            properties: {
+                class: "item-info"
+            }
+        });
+        itemInfoDiv.innerText = value;
+
+        liCreate = makeHtmlElement({
+            name: "li",
+            properties: {
+                id: item,
+            }
+        });
+        bodyDiv.appendChild(iconDiv);
+        bodyDiv.appendChild(itemInfoDiv);
+        liCreate.appendChild(bodyDiv);
+
+        return liCreate;
+    }
+
     function searchItemList(keyString) {
+        console.log("---->>>", keyString)
         let itemList = targetEditor.querySelector(`#${holder}-custom-list`);
         let filter = keyString.toUpperCase();
         let itemArray = [], liCreate, i = 0;
 
+        popupReposition();
         itemListVisibility(true);
 
         itemList.innerHTML = "";
@@ -92,14 +133,7 @@ let TrixJS = function (trixConfig) {
         for (item in listItems) {
             let value = listItems[item].trim().toUpperCase();
             if (value.indexOf(filter) > -1) {
-
-                liCreate = makeHtmlElement({
-                    name: "li",
-                    properties: {
-                        id: item,
-                    }
-                });
-                liCreate.innerText = value;
+                liCreate = createListItem(item, value);
                 itemArray.push(liCreate);
             }
         }
@@ -111,7 +145,10 @@ let TrixJS = function (trixConfig) {
                 itemList.appendChild(itemArray[i]);
             }
         }
-        else listItemSelected = undefined;
+        else {
+            listItemSelected = undefined;
+            itemListVisibility(false);
+        }
     }
 
     function activateListItem() {
@@ -171,7 +208,7 @@ let TrixJS = function (trixConfig) {
      */
     let searchKey = function () {
         let documentTextElement = element.innerText;
-
+        console.log("Inner text: ", documentTextElement, "Start p: ", searchKeyStartPosition, "char: ", documentTextElement[searchKeyStartPosition]);
         if ("/" !== documentTextElement[searchKeyStartPosition]) {
             searchKeyStartPosition = -1;
             slashTriggered = false;
@@ -179,6 +216,7 @@ let TrixJS = function (trixConfig) {
             itemListVisibility(false);
             return;
         }
+        console.log("Inner text: ", documentTextElement);
         let caretPosition = element.editor.getSelectedRange()[0];
 
         keyString = documentTextElement.slice(searchKeyStartPosition + 1, caretPosition);
@@ -213,6 +251,25 @@ let TrixJS = function (trixConfig) {
             searchKeyStartPosition = -1;
             slashTriggered = false;
         }
+    }
+
+    let popupReposition = function(){
+        // popup absolute view
+        let listRoot = targetEditor.querySelector(`#${holder}-list-item-root`);
+
+        let carret_range = element.editor.getClientRectAtPosition(element.editor.getSelectedRange()[0]);
+        let diff = window.innerHeight - carret_range.y;
+        if (diff < 400){
+            if (carret_range !== undefined) {
+                listRoot.style.left = (10 + carret_range.left) + "px";
+                listRoot.style.top = (-(400-diff) + carret_range.top) + "px";
+            }
+        }else{
+        if (carret_range !== undefined) {
+            listRoot.style.left = (10 + carret_range.left) + "px";
+            listRoot.style.top = (10 + carret_range.top) + "px";
+        }
+    }
     }
 
     function isAllowedCharacter(char) {

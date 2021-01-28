@@ -20,15 +20,18 @@ trix-toolbar .trix-button-row {
 trix-toolbar .trix-button-group {
   display: flex;
   margin-bottom: 10px;
-  border: 1px solid #bbb;
+  /* border: 1px solid #bbb;
   border-top-color: #ccc;
-  border-bottom-color: #888;
-  border-radius: 3px; }
-  trix-toolbar .trix-button-group:not(:first-child) {
-    margin-left: 1.5vw; }
-    @media (max-device-width: 768px) {
+  border-bottom-color: #888; */
+  /* border-radius: 3px; */
+ }
+ 
+  /* trix-toolbar .trix-button-group:not(:first-child) {
+    margin-left: 1.5vw; 
+  } */
+    /* @media (max-device-width: 768px) {
       trix-toolbar .trix-button-group:not(:first-child) {
-        margin-left: 0; } }
+        margin-left: 0; } } */
 trix-toolbar .trix-button-group-spacer {
   flex-grow: 1; }
   @media (max-device-width: 768px) {
@@ -45,11 +48,12 @@ trix-toolbar .trix-button {
   margin: 0;
   outline: none;
   border: none;
-  border-bottom: 1px solid #ddd;
+  /* border-bottom: 1px solid #ddd; */
   border-radius: 0;
   background: transparent; }
   trix-toolbar .trix-button:not(:first-child) {
-    border-left: 1px solid #ccc; }
+    /* border-left: 1px solid #ccc; */
+   }
   trix-toolbar .trix-button.trix-active {
     background: #cbeefa;
     color: black; }
@@ -57,20 +61,20 @@ trix-toolbar .trix-button {
     cursor: pointer; }
   trix-toolbar .trix-button:disabled {
     color: rgba(0, 0, 0, 0.125); }
-  @media (max-device-width: 768px) {
+  /* @media (max-device-width: 768px) {
     trix-toolbar .trix-button {
       letter-spacing: -0.01em;
-      padding: 0 0.3em; } }
+      padding: 0 0.3em; } } */
 trix-toolbar .trix-button--icon {
   font-size: inherit;
   width: 2.6em;
   height: 1.6em;
   max-width: calc(0.8em + 4vw);
   text-indent: -9999px; }
-  @media (max-device-width: 768px) {
+  /* @media (max-device-width: 768px) {
     trix-toolbar .trix-button--icon {
       height: 2em;
-      max-width: calc(0.8em + 3.5vw); } }
+      max-width: calc(0.8em + 3.5vw); } } */
   trix-toolbar .trix-button--icon::before {
     display: inline-block;
     position: absolute;
@@ -83,10 +87,10 @@ trix-toolbar .trix-button--icon {
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain; }
-    @media (max-device-width: 768px) {
+    /* @media (max-device-width: 768px) {
       trix-toolbar .trix-button--icon::before {
         right: 6%;
-        left: 6%; } }
+        left: 6%; } } */
   trix-toolbar .trix-button--icon.trix-active::before {
     opacity: 1; }
   trix-toolbar .trix-button--icon:disabled::before {
@@ -240,7 +244,8 @@ trix-editor .trix-button {
   border-radius: 0;
   background: transparent; }
   trix-editor .trix-button:not(:first-child) {
-    border-left: 1px solid #ccc; }
+    /* border-left: 1px solid #ccc; */
+   }
   trix-editor .trix-button.trix-active {
     background: #cbeefa; }
   trix-editor .trix-button:not(:disabled) {
@@ -375,4 +380,62 @@ trix-editor .attachment__metadata {
       max-width: 50%; }
 
 
-      .selected {background:yellow}
+      .selected {
+        box-shadow: 0 0 0 2px #007cba;
+        border-radius: 7px;
+        margin: 0px 11px;
+      }
+
+      .custom-modal {
+        position: fixed;
+        /* Stay in place */
+        z-index: 1000;
+        left: 50%;
+        top: 30%;
+        width: 300px;
+        background-color: #fff;
+        /* Fallback color */
+        /*background-color: rgba(255, 255, 255, 0.4);*/
+        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+    }
+
+    .trix_subsection{
+      color: #8594aa;
+      font-size: .9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: .75rem .75rem .3rem;
+  }
+
+  .body-div{
+    padding: .75rem; margin-bottom: 0; 
+    display: flex; 
+    width: 100%;
+    align-items: center;
+  }
+
+  .heading1-svg{
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.6;
+    background-image:  url(data:image/svg+xml,%3Csvg%20version%3D%221%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%3E%3Cpath%20d%3D%22M12%209v3H9v7H6v-7H3V9h9zM8%204h14v3h-6v12h-3V7H8V4z%22%2F%3E%3C%2Fsvg%3E);
+  }
+
+  .icon-preview{
+    flex: 1 1;
+    border: 1px solid #ebeced;
+    border-radius: .4rem;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    max-width: 40px;
+}
+
+/* .trix-item-info{
+  flex: 3 1;
+  margin-left: .85rem;
+} */
+.item-info{
+  margin-left: 15px;
+}
