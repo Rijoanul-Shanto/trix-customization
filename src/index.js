@@ -1,7 +1,6 @@
 let TrixJS = function (trixConfig) {
-    this.holder = trixConfig.holder;
-    this.inputId = trixConfig.inputId;
-    this.value = trixConfig.value;
+    const holder = trixConfig.holder;
+    const value = trixConfig.value;
 
     let resetCaretPosition = -1;
     let slashTriggered = false;
@@ -9,28 +8,29 @@ let TrixJS = function (trixConfig) {
     let listIndex = 0;
     let listItemSelected = undefined;
 
-    const targetEditor = document.querySelector('#' + this.holder);
+    const targetEditor = document.querySelector('#' + holder);
     const initEditor = document.createElement('trix-editor');
     const inputField = document.createElement('input');
 
     const listItems = {
         heading1: "Heading",
-        quote: "Quote",
+        quote: "Blockquote",
         code: "Code",
-        bullet: "Bullet List",
+        bullet: "Bulleted List",
         number: "Numbered List",
     }
 
-    inputField.setAttribute('id', this.holder + "-input");
+    inputField.setAttribute('id', `${holder}-input`);
     inputField.setAttribute('type', 'hidden');
-    inputField.setAttribute('value', this.value);
     inputField.setAttribute('name', "content");
-    initEditor.setAttribute('input', this.holder + "-input");
+    initEditor.setAttribute('input', `${holder}-input`);
+
+    undefined !== value && inputField.setAttribute('value', value);
 
     targetEditor.appendChild(inputField);
     targetEditor.appendChild(initEditor);
 
-    const element = document.querySelectorAll("#" + this.holder + " trix-editor")[0];
+    const element = document.querySelectorAll(`#${holder} trix-editor`)[0];
 
 
     let makeHtmlElement = function (elementConfig) {
@@ -42,12 +42,15 @@ let TrixJS = function (trixConfig) {
         return htmlElement;
     }
 
+    /**
+     * load list related configuration at the time of editor initialize
+     */
     let loadListParent = function () {
         let div = makeHtmlElement({
             name: "div",
             properties: {
-                style: `border: 1px solid #ededed; border-radius: .4rem; max-height: 190px; max-width: 200px;`,
-
+                style: `border: 1px solid #ededed; border-radius: .4rem; max-height: 190px; max-width: 200px; display:none`,
+                id: `${holder}-list-item-root`
             }
         });
 
@@ -55,6 +58,7 @@ let TrixJS = function (trixConfig) {
             name: "ul",
             properties: {
                 style: `list-style-type: none; padding-left: 0`,
+                id: `${holder}-custom-list`,
             }
         });
 
@@ -62,15 +66,27 @@ let TrixJS = function (trixConfig) {
         targetEditor.appendChild(div);
     }
 
+    function itemListVisibility(isVisibile) {
+        let listRoot = targetEditor.querySelector(`#${holder}-list-item-root`);
+
+        isVisibile ? listRoot.style.display = "" : listRoot.style.display = "none";
+    }
+
+    /**
+     * reset list item by deleting all child elements
+     */
     function itemListReset() {
-        let itemList = targetEditor.querySelector("ul");
+        let itemList = targetEditor.querySelector(`#${holder}-custom-list`);
         itemList.innerHTML = "";
     }
 
     function searchItemList(keyString) {
-        let itemList = targetEditor.querySelector("ul");
+        let itemList = targetEditor.querySelector(`#${holder}-custom-list`);
         let filter = keyString.toUpperCase();
         let itemArray = [], liCreate, i = 0;
+
+        itemListVisibility(true);
+
         itemList.innerHTML = "";
 
         for (item in listItems) {
@@ -98,9 +114,18 @@ let TrixJS = function (trixConfig) {
         else listItemSelected = undefined;
     }
 
+    function activateListItem() {
+        if (undefined !== listItemSelected) {
+            element.editor.canActivateAttribute(listItemSelected.id) &&
+                element.editor.activateAttribute(listItemSelected.id);
+        }
+    }
+
+    /**
+     * traver through list item by arrow keys 
+     */
     function travelItemList(pressedKey) {
-        console.log("traveling");
-        let itemList = targetEditor.querySelector("ul").getElementsByTagName('li');
+        let itemList = targetEditor.querySelector(`#${holder}-custom-list`).getElementsByTagName('li');
         let itemLength = itemList.length;
         let nextChild;
 
@@ -140,19 +165,30 @@ let TrixJS = function (trixConfig) {
         }
     }
 
+    /**
+     * if slash is deleted by pressing backspace then reset
+     * otherwise search for the key 
+     */
     let searchKey = function () {
         let documentTextElement = element.innerText;
+
         if ("/" !== documentTextElement[searchKeyStartPosition]) {
             searchKeyStartPosition = -1;
             slashTriggered = false;
+            itemListReset();
+            itemListVisibility(false);
+            return;
         }
         let caretPosition = element.editor.getSelectedRange()[0];
 
         keyString = documentTextElement.slice(searchKeyStartPosition + 1, caretPosition);
-        searchItemList(keyString.trim());
-        console.log('~~~', keyString, documentTextElement[searchKeyStartPosition]);
+        searchItemList(keyString);
     }
 
+    /**
+    * allowed if editor is empty or previous character of slash is a newline 
+    * returns the slash position if allowed, -1 otherwise
+    */
     let isSlashAllowed = function () {
         let documentTextElement = element.innerText;
         let slashPosition = element.editor.getSelectedRange()[0] - 1;
@@ -160,6 +196,11 @@ let TrixJS = function (trixConfig) {
         return (0 === slashPosition || '\n' === documentTextElement[slashPosition - 1]) ? slashPosition : -1;
     }
 
+    /**
+     * if slash is triggered then,
+     * reset slash by deleting the slash and search key
+     * reset slash trigger
+     */
     let slashReset = function () {
         if (slashTriggered) {
             element.editor.setSelectedRange([
@@ -174,33 +215,42 @@ let TrixJS = function (trixConfig) {
         }
     }
 
-    function isCharacter(char) {
-        return (1 === char.length && char.match(/[a-z]/i)) || "Backspace" === char;
+    function isAllowedCharacter(char) {
+        return (1 === char.length && char.match(/[a-z]/i)) || "Backspace" === char || "" === char;
     }
 
-    let handleKeyUpPress = function (pressedKey) {
-        console.log(pressedKey);
+    /* 
+        if slash is allowed, then
+        searchKeyStartPosition is set after slash character
+        searchItemList to initial the list popup
+
+        otherwise if slash is triggered then,
+        send the search key and reset the traverse variable for list item
+    */
+    function handleKeyUpPress(pressedKey) {
+        console.log("presssed key:", pressedKey, holder);
 
         if ('/' === pressedKey) {
             let result = isSlashAllowed();
             -1 !== result ? (
                 searchKeyStartPosition = result,
                 slashTriggered = true,
-                itemListPopupTrigger = true,
                 searchItemList("")
             ) : undefined;
         }
-        else if ('' === pressedKey) {
-            slashTriggered ? (
-                itemListReset(),
-                listIndex = 0
-            ) : undefined;
-        }
         else {
-            slashTriggered && isCharacter(pressedKey) ? searchKey() : undefined;
+            slashTriggered && isAllowedCharacter(pressedKey) ? (searchKey(), listIndex = 0) : undefined;
         }
     }
 
+    /**
+     * if enter pressed and also slash is triggered then,
+     * select item from the list item 
+     * reset slash, itemlist and active functionality 
+     * 
+     * if arrow event occured then, 
+     * travel through the list item
+     */
     function handleKeyDownPress(event) {
         if ('Enter' === event.key) {
             slashTriggered ? (
@@ -208,10 +258,10 @@ let TrixJS = function (trixConfig) {
                 event.stopPropagation(),
                 slashReset(),
                 itemListReset(),
+                itemListVisibility(false),
+                activateListItem(),
                 listIndex = 0
             ) : undefined;
-
-            console.log(listItemSelected);
         }
         else if (
             "ArrowUp" === event.key || "ArrowDown" === event.key ||
@@ -227,7 +277,7 @@ let TrixJS = function (trixConfig) {
     }
 
     addEventListener("trix-initialize", function (event) {
-        console.log("editor is ready to use");
+        console.log("Awesome! editor is ready to use!");
         loadListParent();
     });
 
@@ -247,5 +297,5 @@ let TrixJS = function (trixConfig) {
 
 const test = new TrixJS({
     holder: "trix",
-    value: "<h1>hello</h1>",
+    // value: "<h1>hello</h1>",
 });
