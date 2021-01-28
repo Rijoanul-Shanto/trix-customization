@@ -6,12 +6,21 @@ let TrixJS = function (trixConfig) {
     let resetCaretPosition = -1;
     let slashTriggered = false;
     let searchKeyStartPosition = -1;
-    let listIndex = -1;
+    let listIndex = 0;
+    // let isTravelingList = false;
     let listItemSelected = undefined;
 
     const targetEditor = document.querySelector('#' + this.holder);
     const initEditor = document.createElement('trix-editor');
     const inputField = document.createElement('input');
+
+    const listItems = {
+        heading1: "Heading",
+        quote: "Quote",
+        code: "Code",
+        bullet: "Bullet List",
+        number: "Numbered List",
+    }
 
     inputField.setAttribute('id', this.holder + "-input");
     inputField.setAttribute('type', 'hidden');
@@ -34,7 +43,7 @@ let TrixJS = function (trixConfig) {
         return htmlElement;
     }
 
-    let loadListItems = function () {
+    let loadListParent = function () {
         let div = makeHtmlElement({
             name: "div",
             properties: {
@@ -50,48 +59,41 @@ let TrixJS = function (trixConfig) {
             }
         });
 
-        const listItems = {
-            heading1: "Heading",
-            quote: "Quote",
-            code: "Code",
-            bullet: "Bullet List",
-            number: "Numbered List",
-        }
-
-        for (item in listItems) {
-            let li = makeHtmlElement({
-                name: "li",
-                properties: {
-                    name: listItems[item],
-                    id: item,
-                }
-            });
-            li.innerText = listItems[item];
-            ul.appendChild(li);
-        }
-        console.log(ul);
         div.appendChild(ul);
-
         targetEditor.appendChild(div);
     }
 
     function itemListReset() {
         let itemList = targetEditor.querySelector("ul");
-        let li = itemList.getElementsByTagName("li");
-        let i = 0, listLength = li.length;
-        for (i = 0; i < listLength; i++) li[i].style.display = "";
+        itemList.innerHTML = "";
     }
 
     function searchItemList(keyString) {
         let itemList = targetEditor.querySelector("ul");
-        let li = itemList.getElementsByTagName("li");
-        let i = 0, listLength = li.length, listValue = "", filter = keyString.toUpperCase();
-        for (i = 0; i < listLength; i++) {
-            listValue = li[i].textContent;
-            if (listValue.toUpperCase().indexOf(filter) > -1) {
-                li[i].style.display = "";
-            } else {
-                li[i].style.display = "none";
+        let filter = keyString.toUpperCase();
+        let itemArray = [], liCreate, i = 0;
+        itemList.innerHTML = "";
+
+        for (item in listItems) {
+            let value = listItems[item].trim().toUpperCase();
+            if (value.indexOf(filter) > -1) {
+
+                liCreate = makeHtmlElement({
+                    name: "li",
+                    properties: {
+                        id: item,
+                    }
+                });
+                liCreate.innerText = value;
+                itemArray.push(liCreate);
+            }
+        }
+
+        if (itemArray.length > 0) {
+            itemArray[0].classList.add("selected");
+            listItemSelected = itemArray[0];
+            for (i = 0; i < itemArray.length; i++) {
+                itemList.appendChild(itemArray[i]);
             }
         }
     }
@@ -100,32 +102,41 @@ let TrixJS = function (trixConfig) {
         console.log("traveling");
         let itemList = targetEditor.querySelector("ul").getElementsByTagName('li'), i = 0, j = 0;
         let itemLength = itemList.length;
+        let nextChild;
 
-        if ("ArrowUp" === pressedKey) {
-            for (i = itemLength - 1; i >= 0; i--) {
-                if (null === itemList[i].getAttribute("style")) {
-                    itemList[i].classList.add("selected");
-                }
-            }
-            console.log("up");
-        }
-        else {
-            if (undefined === listItemSelected) {
-                listIndex = 0;
+        if (!itemLength) return null;
 
-                listItemSelected = itemList[0];
-                listItemSelected.classList.add("selected");
+        if ("ArrowUp" === pressedKey || "ArrowRight" === pressedKey) {
+            listIndex--;
+
+            listItemSelected.classList.remove("selected");
+            nextChild = itemList[listIndex];
+
+            if (undefined !== nextChild && listIndex >= 0) {
+                listItemSelected = nextChild;
             }
             else {
-                listItemSelected.classList.remove("selected");
-                while (null !== listItemSelected.nextSibling) {
-                    listItemSelected = listItemSelected.nextSibling;
-                    if (null === listItemSelected.getAttribute("style")) {
-                        listItemSelected.classList.add("selected");
-                        break;
-                    }   
-                }
+                listIndex = itemLength - 1;
+                listItemSelected = itemList[itemLength - 1];
             }
+
+            listItemSelected.classList.add("selected");
+        }
+        else {
+            listIndex++;
+
+            listItemSelected.classList.remove("selected");
+            nextChild = itemList[listIndex];
+
+            if (undefined !== nextChild && listIndex < itemLength) {
+                listItemSelected = nextChild;
+            }
+            else {
+                listIndex = 0;
+                listItemSelected = itemList[0];
+            }
+
+            listItemSelected.classList.add("selected");
         }
     }
 
@@ -159,7 +170,11 @@ let TrixJS = function (trixConfig) {
         }
     }
 
-    let handleKeyPress = function (pressedKey) {
+    function isCharacter(char) {
+        return (1 === char.length && char.match(/[a-z]/i)) || "Backspace" === char;
+    }
+
+    let handleKeyUpPress = function (pressedKey) {
         console.log(pressedKey);
 
         if ('/' === pressedKey) {
@@ -167,44 +182,56 @@ let TrixJS = function (trixConfig) {
             -1 !== result ? (
                 searchKeyStartPosition = result,
                 slashTriggered = true,
-                itemListPopupTrigger = true
-            ) : undefined;
-        }
-        else if ('Enter' === pressedKey) {
-            slashTriggered ? (
-                slashReset(),
-                itemListReset()
+                itemListPopupTrigger = true,
+                searchItemList("")
             ) : undefined;
         }
         else if ('' === pressedKey) {
-            console.log('' === pressedKey);
             slashTriggered ? (
                 itemListReset()
             ) : undefined;
         }
-        else if ("ArrowUp" === pressedKey || "ArrowDown" === pressedKey) {
-            slashTriggered ? (
-                element.editor.setSelectedRange([resetCaretPosition, resetCaretPosition]),
-                travelItemList(pressedKey)
-            ) : undefined;
-        }
         else {
-            slashTriggered ? searchKey() : undefined;
+            slashTriggered && isCharacter(pressedKey) ? searchKey() : undefined;
+        }
+    }
+
+    function handleKeyDownPress(event) {
+        if ('Enter' === event.key) {
+            slashTriggered ? (
+                event.preventDefault(),
+                event.stopPropagation(),
+                slashReset(),
+                itemListReset()
+            ) : undefined;
+
+            console.log(listItemSelected);
+        }
+        else if (
+            "ArrowUp" === event.key || "ArrowDown" === event.key ||
+            "ArrowLeft" === event.key || "ArrowRight" === event.key
+        ) {
+            slashTriggered ? (
+                event.preventDefault(),
+                event.stopPropagation(),
+                element.editor.setSelectedRange([resetCaretPosition, resetCaretPosition]),
+                travelItemList(event.key)
+            ) : undefined;
         }
     }
 
     addEventListener("trix-initialize", function (event) {
         console.log("editor is ready to use");
-        loadListItems();
+        loadListParent();
     });
 
     element.addEventListener("keyup", function (event) {
-        handleKeyPress(event.key.trim());
+        handleKeyUpPress(event.key.trim());
     });
 
     element.addEventListener("keydown", function (event) {
         resetCaretPosition = element.editor.getSelectedRange()[0];
-        console.log("down", resetCaretPosition);
+        handleKeyDownPress(event);
     });
 
     return {
