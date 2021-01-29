@@ -1,6 +1,9 @@
-let TrixJS = function (trixConfig) {
+// require("../node_modules/trix");
+
+let TrixJS = function(trixConfig) {
     const holder = trixConfig.holder;
     const value = trixConfig.value;
+    const finalOutput = trixConfig.output;
 
     let resetCaretPosition = -1;
     let slashTriggered = false;
@@ -22,7 +25,7 @@ let TrixJS = function (trixConfig) {
 
     inputField.setAttribute('id', `${holder}-input`);
     inputField.setAttribute('type', 'hidden');
-    inputField.setAttribute('name', 'content');
+    inputField.setAttribute('name', finalOutput);
     initEditor.setAttribute('input', `${holder}-input`);
     initEditor.classList.add("trix-content");
 
@@ -33,8 +36,7 @@ let TrixJS = function (trixConfig) {
 
     const element = document.querySelectorAll(`#${holder} trix-editor`)[0];
 
-
-    let makeHtmlElement = function (elementConfig) {
+    let makeHtmlElement = function(elementConfig) {
         let htmlElement = document.createElement(elementConfig.name);
         for (key in elementConfig.properties) {
             htmlElement.setAttribute(key, elementConfig.properties[key]);
@@ -46,12 +48,12 @@ let TrixJS = function (trixConfig) {
     /**
      * load list related configuration at the time of editor initialize
      */
-    let loadListParent = function () {
+    let loadListParent = function() {
         let div = makeHtmlElement({
             name: "div",
             properties: {
                 style: `display: none; border: 1px solid #ededed; border-radius: .4rem;`,
-                id: `${holder}-list-item-root`,
+                id: `trix-list-item-root`,
                 class: "trix-list-item-popup",
             }
         });
@@ -113,8 +115,17 @@ let TrixJS = function (trixConfig) {
                 id: item,
             }
         });
+
+        let ahref = makeHtmlElement({
+            name: "a",
+            properties: {
+                onclick: "itemClickEvent(this)"
+            }
+        })
+
         bodyDiv.appendChild(iconDiv);
         bodyDiv.appendChild(itemInfoDiv);
+        // ahref.appendChild(bodyDiv); //TODO
         liCreate.appendChild(bodyDiv);
 
         return liCreate;
@@ -123,7 +134,8 @@ let TrixJS = function (trixConfig) {
     function searchItemList(keyString) {
         let itemList = targetEditor.querySelector(`#${holder}-custom-list`);
         let filter = keyString.toUpperCase();
-        let itemArray = [], liCreate, i = 0;
+        let itemArray = [],
+            liCreate, i = 0;
 
         popupReposition();
         itemListVisibility(true);
@@ -145,8 +157,7 @@ let TrixJS = function (trixConfig) {
                 if (itemArray.length === i) break;
                 itemList.appendChild(itemArray[i]);
             }
-        }
-        else {
+        } else {
             listItemSelected = undefined;
             itemListVisibility(false);
         }
@@ -177,15 +188,13 @@ let TrixJS = function (trixConfig) {
 
             if (undefined !== nextChild && listIndex >= 0) {
                 listItemSelected = nextChild;
-            }
-            else {
+            } else {
                 listIndex = itemLength - 1;
                 listItemSelected = itemList[itemLength - 1];
             }
 
             listItemSelected.classList.add("trix-toolbar-attribute-selected");
-        }
-        else {
+        } else {
             listIndex++;
 
             listItemSelected.classList.remove("trix-toolbar-attribute-selected");
@@ -193,8 +202,7 @@ let TrixJS = function (trixConfig) {
 
             if (undefined !== nextChild && listIndex < itemLength) {
                 listItemSelected = nextChild;
-            }
-            else {
+            } else {
                 listIndex = 0;
                 listItemSelected = itemList[0];
             }
@@ -207,7 +215,7 @@ let TrixJS = function (trixConfig) {
      * if slash is deleted by pressing backspace then reset
      * otherwise search for the key 
      */
-    let searchKey = function () {
+    let searchKey = function() {
         let documentTextElement = element.innerText;
         if ("/" !== documentTextElement[searchKeyStartPosition]) {
             searchKeyStartPosition = -1;
@@ -216,7 +224,6 @@ let TrixJS = function (trixConfig) {
             itemListVisibility(false);
             return;
         }
-        console.log("Inner text: ", documentTextElement);
         let caretPosition = element.editor.getSelectedRange()[0];
 
         keyString = documentTextElement.slice(searchKeyStartPosition + 1, caretPosition);
@@ -224,10 +231,10 @@ let TrixJS = function (trixConfig) {
     }
 
     /**
-    * allowed if editor is empty or previous character of slash is a newline 
-    * returns the slash position if allowed, -1 otherwise
-    */
-    let isSlashAllowed = function () {
+     * allowed if editor is empty or previous character of slash is a newline 
+     * returns the slash position if allowed, -1 otherwise
+     */
+    let isSlashAllowed = function() {
         let documentTextElement = element.innerText;
         let slashPosition = element.editor.getSelectedRange()[0] - 1;
 
@@ -239,7 +246,7 @@ let TrixJS = function (trixConfig) {
      * reset slash by deleting the slash and search key
      * reset slash trigger
      */
-    let slashReset = function () {
+    let slashReset = function() {
         if (slashTriggered) {
             element.editor.setSelectedRange([
                 searchKeyStartPosition,
@@ -253,7 +260,7 @@ let TrixJS = function (trixConfig) {
         }
     }
 
-    let popupReposition = function () {
+    let popupReposition = function() {
         // popup absolute view
         let listRoot = targetEditor.querySelector(`#${holder}-list-item-root`);
 
@@ -285,17 +292,14 @@ let TrixJS = function (trixConfig) {
         send the search key and reset the traverse variable for list item
     */
     function handleKeyUpPress(pressedKey) {
-        console.log("presssed key:", pressedKey, holder);
-
         if ('/' === pressedKey) {
-            let result = isSlashAllowed();
-            -1 !== result ? (
+            let result = isSlashAllowed(); -
+            1 !== result ? (
                 searchKeyStartPosition = result,
                 slashTriggered = true,
                 searchItemList("")
             ) : undefined;
-        }
-        else {
+        } else {
             slashTriggered && isAllowedCharacter(pressedKey) ? (searchKey(), listIndex = 0) : undefined;
         }
     }
@@ -319,8 +323,7 @@ let TrixJS = function (trixConfig) {
                 activateListItem(),
                 listIndex = 0
             ) : undefined;
-        }
-        else if (
+        } else if (
             "ArrowUp" === event.key || "ArrowDown" === event.key ||
             "ArrowLeft" === event.key || "ArrowRight" === event.key
         ) {
@@ -333,16 +336,27 @@ let TrixJS = function (trixConfig) {
         }
     }
 
-    addEventListener("trix-initialize", function (event) {
+    addEventListener("trix-initialize", function(event) {
         console.log("Awesome! editor is ready to use!");
         loadListParent();
     });
 
-    element.addEventListener("keyup", function (event) {
+    addEventListener("trix-blur", function(event) {
+        slashTriggered ? (
+            event.preventDefault(),
+            event.stopPropagation(),
+            slashReset(),
+            itemListReset(),
+            itemListVisibility(false),
+            listIndex = 0
+        ) : undefined;
+    });
+
+    element.addEventListener("keyup", function(event) {
         handleKeyUpPress(event.key.trim());
     });
 
-    element.addEventListener("keydown", function (event) {
+    element.addEventListener("keydown", function(event) {
         resetCaretPosition = element.editor.getSelectedRange()[0];
         handleKeyDownPress(event);
     });
@@ -352,7 +366,11 @@ let TrixJS = function (trixConfig) {
     }
 };
 
-const test = new TrixJS({
-    holder: "trix",
-    value: "",
-});
+
+//initiate demo
+
+// const test = new TrixJS({
+//     holder: "trix",
+//     output: "trix-output",
+//     value: "",
+// });
