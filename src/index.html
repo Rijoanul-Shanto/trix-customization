@@ -5,21 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="trix.css">
-    <script type="text/javascript" src="trix.js"></script>
+    <script type="text/javascript" src="../node_modules/trix/dist/trix.js"></script>
+    <script type="text/javascript" src="index.js"></script>
     <title>Document</title>
 </head>
 
 <body>
     <div>
         <form action="#">
-            <div id="trix"></div>
+            <div id="trix" style="max-width: 700px;">
+            </div>
             <button type="submit">Submit</button>
         </form>
     </div>
 
 
-
-    <script src="index.js"></script>
+    <script>
+        const test = new TrixJS({
+            holder: "trix",
+            output: "trix-output",
+            value: "",
+        });
+    </script>
 </body>
 
 </html>
