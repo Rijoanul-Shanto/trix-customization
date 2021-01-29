@@ -22,8 +22,9 @@ let TrixJS = function (trixConfig) {
 
     inputField.setAttribute('id', `${holder}-input`);
     inputField.setAttribute('type', 'hidden');
-    inputField.setAttribute('name', "content");
+    inputField.setAttribute('name', 'content');
     initEditor.setAttribute('input', `${holder}-input`);
+    initEditor.classList.add("trix-content");
 
     undefined !== value && inputField.setAttribute('value', value);
 
@@ -51,7 +52,7 @@ let TrixJS = function (trixConfig) {
             properties: {
                 style: `display: none; border: 1px solid #ededed; border-radius: .4rem;`,
                 id: `${holder}-list-item-root`,
-                class: "custom-modal",
+                class: "trix-list-item-popup",
             }
         });
 
@@ -81,27 +82,27 @@ let TrixJS = function (trixConfig) {
         itemList.innerHTML = "";
     }
 
-    function createListItem(item, value){
+    function createListItem(item, value) {
         let liCreate;
 
         let bodyDiv = makeHtmlElement({
             name: "div",
             properties: {
-                class: "body-div"
+                class: "trix-list-item-body-div"
             }
         });
 
         let iconDiv = makeHtmlElement({
             name: "div",
             properties: {
-                class: `${item}-svg icon-preview`
+                class: `trix-list-item-${item}-svg trix-list-item-icon-preview`
             }
         });
 
         let itemInfoDiv = makeHtmlElement({
             name: "div",
             properties: {
-                class: "item-info"
+                class: "trix-list-item-info"
             }
         });
         itemInfoDiv.innerText = value;
@@ -120,7 +121,6 @@ let TrixJS = function (trixConfig) {
     }
 
     function searchItemList(keyString) {
-        console.log("---->>>", keyString)
         let itemList = targetEditor.querySelector(`#${holder}-custom-list`);
         let filter = keyString.toUpperCase();
         let itemArray = [], liCreate, i = 0;
@@ -139,9 +139,10 @@ let TrixJS = function (trixConfig) {
         }
 
         if (itemArray.length > 0) {
-            itemArray[0].classList.add("selected");
+            itemArray[0].classList.add("trix-toolbar-attribute-selected");
             listItemSelected = itemArray[0];
-            for (i = 0; i < itemArray.length; i++) {
+            for (i = 0; i < 5; i++) {
+                if (itemArray.length === i) break;
                 itemList.appendChild(itemArray[i]);
             }
         }
@@ -171,7 +172,7 @@ let TrixJS = function (trixConfig) {
         if ("ArrowUp" === pressedKey || "ArrowRight" === pressedKey) {
             listIndex--;
 
-            listItemSelected.classList.remove("selected");
+            listItemSelected.classList.remove("trix-toolbar-attribute-selected");
             nextChild = itemList[listIndex];
 
             if (undefined !== nextChild && listIndex >= 0) {
@@ -182,12 +183,12 @@ let TrixJS = function (trixConfig) {
                 listItemSelected = itemList[itemLength - 1];
             }
 
-            listItemSelected.classList.add("selected");
+            listItemSelected.classList.add("trix-toolbar-attribute-selected");
         }
         else {
             listIndex++;
 
-            listItemSelected.classList.remove("selected");
+            listItemSelected.classList.remove("trix-toolbar-attribute-selected");
             nextChild = itemList[listIndex];
 
             if (undefined !== nextChild && listIndex < itemLength) {
@@ -198,7 +199,7 @@ let TrixJS = function (trixConfig) {
                 listItemSelected = itemList[0];
             }
 
-            listItemSelected.classList.add("selected");
+            listItemSelected.classList.add("trix-toolbar-attribute-selected");
         }
     }
 
@@ -208,7 +209,6 @@ let TrixJS = function (trixConfig) {
      */
     let searchKey = function () {
         let documentTextElement = element.innerText;
-        console.log("Inner text: ", documentTextElement, "Start p: ", searchKeyStartPosition, "char: ", documentTextElement[searchKeyStartPosition]);
         if ("/" !== documentTextElement[searchKeyStartPosition]) {
             searchKeyStartPosition = -1;
             slashTriggered = false;
@@ -253,23 +253,23 @@ let TrixJS = function (trixConfig) {
         }
     }
 
-    let popupReposition = function(){
+    let popupReposition = function () {
         // popup absolute view
         let listRoot = targetEditor.querySelector(`#${holder}-list-item-root`);
 
         let carret_range = element.editor.getClientRectAtPosition(element.editor.getSelectedRange()[0]);
         let diff = window.innerHeight - carret_range.y;
-        if (diff < 400){
+        if (diff < 400) {
             if (carret_range !== undefined) {
                 listRoot.style.left = (10 + carret_range.left) + "px";
-                listRoot.style.top = (-(400-diff) + carret_range.top) + "px";
+                listRoot.style.top = (-(400 - diff) + carret_range.top) + "px";
             }
-        }else{
-        if (carret_range !== undefined) {
-            listRoot.style.left = (10 + carret_range.left) + "px";
-            listRoot.style.top = (10 + carret_range.top) + "px";
+        } else {
+            if (carret_range !== undefined) {
+                listRoot.style.left = (10 + carret_range.left) + "px";
+                listRoot.style.top = (10 + carret_range.top) + "px";
+            }
         }
-    }
     }
 
     function isAllowedCharacter(char) {
@@ -354,5 +354,5 @@ let TrixJS = function (trixConfig) {
 
 const test = new TrixJS({
     holder: "trix",
-    // value: "<h1>hello</h1>",
+    value: "",
 });
