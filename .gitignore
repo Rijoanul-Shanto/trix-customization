@@ -3,3 +3,4 @@ src/test.js
 src/test.html
 dist
 package-lock.json
+.vscode
