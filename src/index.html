@@ -1,32 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="tdeditor.css" />
+    <!-- <script
+      type="text/javascript"
+      src="../node_modules/trix/dist/trix.js"
+    ></script> -->
+    <!-- <script type="module" src="index.js"></script> -->
+    <script src="../dist/tdeditor.js"></script>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="trix.css">
-    <script type="text/javascript" src="../node_modules/trix/dist/trix.js"></script>
-    <script type="text/javascript" src="index.js"></script>
     <title>Document</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <div>
-        <form action="#">
-            <div id="trix" style="max-width: 700px;">
-            </div>
-            <button type="submit">Submit</button>
-        </form>
+      <form action="#">
+        <div id="tdeditor" style="max-width: 700px"></div>
+        <button type="submit">Submit</button>
+      </form>
     </div>
 
+    <script type="module">
+      // import TDEditor from "../dist/tdeditor.js";
 
-    <script>
-        const test = new TrixJS({
-            holder: "trix",
-            output: "trix-output",
-            value: "",
-        });
+      const test = new TDEditor({
+        holder: "tdeditor",
+        output: "tdeditor-output",
+        value: "",
+      });
     </script>
-</body>
-
+  </body>
 </html>
