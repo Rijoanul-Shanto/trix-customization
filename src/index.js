@@ -1,18 +1,14 @@
-require("trix");
+// require("trix");
 
 export default function TDEditor(tdConfig) {
   this.tdConfig = tdConfig;
-  const { holder, output, value } = this.tdConfig;
+  const { holder, output, value, toolbar } = this.tdConfig;
 
   let resetCaretPosition = -1;
   let slashTriggered = false;
   let searchKeyStartPosition = -1;
   let listIndex = 0;
   let listItemSelected = undefined;
-
-  const targetEditor = document.querySelector(`#${holder}`);
-  const initEditor = document.createElement("trix-editor");
-  const inputField = document.createElement("input");
 
   const listItems = {
     heading1: "Heading",
@@ -22,9 +18,14 @@ export default function TDEditor(tdConfig) {
     number: "Numbered List",
   };
 
+  const targetEditor = document.querySelector(`#${holder}`);
+  const initEditor = document.createElement("trix-editor");
+  const inputField = document.createElement("input");
+
   inputField.setAttribute("id", `${holder}-output`);
   inputField.setAttribute("type", "hidden");
   inputField.setAttribute("name", output);
+
   initEditor.setAttribute("input", `${holder}-output`);
   initEditor.classList.add("trix-content");
 
@@ -35,7 +36,18 @@ export default function TDEditor(tdConfig) {
 
   const element = document.querySelectorAll(`#${holder} trix-editor`)[0];
 
-  let getEditorContent = function(){
+  let loadToolbar = function () {
+    let editorToolbar = document.querySelector(`#${holder} trix-toolbar`);
+    if (false !== toolbar) {
+      
+      console.log(editorToolbar);
+    }
+    else{
+      editorToolbar.style.display = "none";
+    }
+  }
+
+  let getEditorContent = function () {
     let editorContentSelector = document.querySelectorAll(`#${holder} #${output}`)[0];
     return editorContentSelector.value;
   }
@@ -381,6 +393,7 @@ export default function TDEditor(tdConfig) {
 
   addEventListener("trix-initialize", function (event) {
     console.log("Awesome! editor is ready to use!");
+    loadToolbar();
     loadListParent();
   });
 
