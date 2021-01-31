@@ -8,7 +8,7 @@
       type="text/javascript"
       src="../node_modules/trix/dist/trix.js"
     ></script> -->
-    <!-- <script type="module" src="index.js"></script> -->
+    <!-- <script type="module" src="./index.js"></script> -->
     <script src="../dist/tdeditor.js"></script>
 
     <title>Document</title>
@@ -23,11 +23,13 @@
     </div>
 
     <script type="module">
-      const test = new TDEditor({
+      // import TDEditor from "./index.js";
+      let tde = new TDEditor({
         holder: "tdeditor",
         output: "tdeditor-output",
-        value: "",
+        value: "<h2>Hello World!</h2>",
       });
+      console.log(tde.getEditorContent());
     </script>
   </body>
 </html>

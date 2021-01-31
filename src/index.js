@@ -22,10 +22,10 @@ export default function TDEditor(tdConfig) {
     number: "Numbered List",
   };
 
-  inputField.setAttribute("id", `${holder}-input`);
+  inputField.setAttribute("id", `${holder}-output`);
   inputField.setAttribute("type", "hidden");
   inputField.setAttribute("name", output);
-  initEditor.setAttribute("input", `${holder}-input`);
+  initEditor.setAttribute("input", `${holder}-output`);
   initEditor.classList.add("trix-content");
 
   undefined !== value && inputField.setAttribute("value", value);
@@ -34,6 +34,11 @@ export default function TDEditor(tdConfig) {
   targetEditor.appendChild(initEditor);
 
   const element = document.querySelectorAll(`#${holder} trix-editor`)[0];
+
+  let getEditorContent = function(){
+    let editorContentSelector = document.querySelectorAll(`#${holder} #${output}`)[0];
+    return editorContentSelector.value;
+  }
 
   let makeHtmlElement = function (elementConfig) {
     let htmlElement = document.createElement(elementConfig.name);
@@ -401,6 +406,7 @@ export default function TDEditor(tdConfig) {
 
   return {
     element,
+    getEditorContent,
   };
 }
 
