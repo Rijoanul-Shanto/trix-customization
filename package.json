@@ -1,8 +1,8 @@
 {
-  "name": "trix-new",
+  "name": "tdeditor",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/tdeditor.js",
+  "main": "index.js",
   "scripts": {
     "dev": "webpack --mode=development",
     "prod": "webpack --mode=production",
