@@ -1,4 +1,4 @@
-require("../node_modules/trix");
+require("trix");
 
 export default function TDEditor(tdConfig) {
   this.tdConfig = tdConfig;
